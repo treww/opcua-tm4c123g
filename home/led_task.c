@@ -8,12 +8,18 @@
 #include "led_task.h"
 
 #include "tm4c123gh6pm.h"
+#include "queue.h"
 
 volatile uint32_t ui32Loop;
+QueueHandle_t LedQueue;
+
+static void Hang()
+{
+  while (1);
+}
 
 static void InitializeLed()
 {
-
   //
   // Enable the GPIO port that is used for the on-board LED.
   //
@@ -28,10 +34,24 @@ static void InitializeLed()
   // Enable the GPIO pin for the LED (PF3).  Set the direction as output, and
   // enable the GPIO pin for digital function.
   //
-  GPIO_PORTF_DIR_R = 0x08;
-  GPIO_PORTF_DEN_R = 0x08;
+  GPIO_PORTF_DIR_R = 0x0E;
+  GPIO_PORTF_DEN_R = 0x0E;
+
+  LedQueue = xQueueCreate(10, sizeof(LedAction));
+  if (LedQueue == 0)
+    Hang();
 }
 
+
+static void TurnOnLed(LedColor color)
+{
+  GPIO_PORTF_DATA_R &= ~((unsigned int)color);
+}
+
+static void TurnOffLed(LedColor color)
+{
+  GPIO_PORTF_DATA_R |= ((unsigned int)color);
+}
 
 void ControlLed()
 {
@@ -40,32 +60,16 @@ void ControlLed()
     //
     while(1)
     {
-        //
-        // Turn on the LED.
-        //
-        GPIO_PORTF_DATA_R &= ~(0x08);
 
-        //
-        // Delay for a bit.
-        //
-        for(ui32Loop = 0; ui32Loop < 20000; ui32Loop++)
-        {
-        }
+        LedAction action = {0};
+        if (!xQueueReceive(LedQueue, &action, portMAX_DELAY))
+          continue;
 
-        //
-        // Turn off the LED.
-        //
-        GPIO_PORTF_DATA_R |= 0x08;
-
-        //
-        // Delay for a bit.
-        //
-        for(ui32Loop = 0; ui32Loop < 20000; ui32Loop++)
-        {
-        }
+        if (action.IsOn)
+          TurnOnLed(action.Color);
+        else
+          TurnOffLed(action.Color);
     }
-
-
 }
 
 static portTASK_FUNCTION(SwitchColor, params)
@@ -74,10 +78,12 @@ static portTASK_FUNCTION(SwitchColor, params)
   vTaskDelete(NULL);
 }
 
-static void Hang()
+void EnableLed(const LedAction* action)
 {
-  while (1);
+  if (xQueueSendToBack(LedQueue, action, portMAX_DELAY) != pdPASS)
+    Hang();
 }
+
 
 int LedTaskInit()
 {
