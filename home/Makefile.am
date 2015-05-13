@@ -36,8 +36,8 @@ freertos_home_SOURCES = \
 	FreeRTOS/FreeRTOS/Source/portable/MemMang/heap_3.c
 
 
-freertos_home_CFLAGS = -I. -I$(FREERTOS_POSIX_ROOT)/include -I$(FREERTOS_POSIX_PORTABLE) -I$(srcdir)/../../ti/inc
-freertos_home_LDFLAGS = -ldl -lpthread
+freertos_home_CFLAGS = -pthread -I. -I$(FREERTOS_POSIX_ROOT)/include -I$(FREERTOS_POSIX_PORTABLE) -I$(srcdir)/../../ti/inc
+freertos_home_LDFLAGS = -ldl
 
 
 target:

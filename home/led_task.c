@@ -7,7 +7,7 @@
 
 #include "led_task.h"
 
-#include "tm4c123gh6pm.h"
+//#include "tm4c123gh6pm.h"
 #include "queue.h"
 
 volatile uint32_t ui32Loop;
@@ -20,6 +20,7 @@ static void Hang()
 
 static void InitializeLed()
 {
+/*
   //
   // Enable the GPIO port that is used for the on-board LED.
   //
@@ -36,7 +37,7 @@ static void InitializeLed()
   //
   GPIO_PORTF_DIR_R = 0x0E;
   GPIO_PORTF_DEN_R = 0x0E;
-
+*/
   LedQueue = xQueueCreate(10, sizeof(LedAction));
   if (LedQueue == 0)
     Hang();
@@ -45,12 +46,12 @@ static void InitializeLed()
 
 static void TurnOnLed(LedColor color)
 {
-  GPIO_PORTF_DATA_R &= ~((unsigned int)color);
+//  GPIO_PORTF_DATA_R &= ~((unsigned int)color);
 }
 
 static void TurnOffLed(LedColor color)
 {
-  GPIO_PORTF_DATA_R |= ((unsigned int)color);
+//  GPIO_PORTF_DATA_R |= ((unsigned int)color);
 }
 
 void ControlLed()
